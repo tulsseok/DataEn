@@ -9,8 +9,8 @@ warnings.filterwarnings('ignore')
 # --- 0. 기본 설정 ---
 FILE_PATH = '/home/minjun/Downloads/OIBC_2025_DATA/train.csv'  # 1900만 행 원본 파일 경로
 N_ROWS_PER_YEAR = 105120
-N_TRAIN_YEARS = 100
-N_VAL_YEARS = 15
+N_TRAIN_YEARS = 20
+N_VAL_YEARS = 4
 
 TARGET = 'nins'
 ID_COL = 'pv_id'
@@ -117,11 +117,19 @@ y_val = val_df[target]
 # (B) LightGBM 모델 정의
 lgb_model = lgb.LGBMRegressor(
     device='gpu',
-    objective='regression_l1',  # MAE (L1 Loss) - nins=0이 많을 수 있으므로 RMSE(L2)보다 안정적
-    metric='mae',               # 평가 지표
-    n_estimators=1000,          # 최대 트리 개수
-    learning_rate=0.05,
-    random_state=42
+    objective='regression_l1',  # MAE (L1 Loss)
+    metric='mae',
+    n_estimators=1000,          # 최대 트리 개수 (Early Stopping이 있으므로 넉넉하게)
+    random_state=42,
+    
+    # --- Optuna로 찾은 하이퍼파라미터 적용 ---
+    learning_rate=0.0549,
+    num_leaves=273,
+    max_depth=7,
+    reg_alpha=5.857,
+    reg_lambda=2.136,
+    colsample_bytree=0.9279,
+    subsample=0.6428
 )
 
 # (C) 모델 학습 (Train/Valid Loss 동시 계산)
